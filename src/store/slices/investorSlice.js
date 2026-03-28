@@ -1,11 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
 
+const getConfig = (token) => ({
+  headers: { Authorization: `Bearer ${token}` },
+});
+
 export const fetchInvestors = createAsyncThunk(
   'investors/fetchInvestors',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
-      const response = await api.get('/api/investors');
+      const { auth } = getState();
+      const response = await api.get('/api/investors', getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch investors');
@@ -15,9 +20,10 @@ export const fetchInvestors = createAsyncThunk(
 
 export const createInvestor = createAsyncThunk(
   'investors/createInvestor',
-  async (investorData, { rejectWithValue }) => {
+  async (investorData, { rejectWithValue, getState }) => {
     try {
-      const response = await api.post('/api/investors', investorData);
+      const { auth } = getState();
+      const response = await api.post('/api/investors', investorData, getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create investor');
@@ -27,9 +33,10 @@ export const createInvestor = createAsyncThunk(
 
 export const updateInvestor = createAsyncThunk(
   'investors/updateInvestor',
-  async ({ id, investor }, { rejectWithValue }) => {
+  async ({ id, investor }, { rejectWithValue, getState }) => {
     try {
-      const response = await api.put(`/api/investors/${id}`, investor);
+      const { auth } = getState();
+      const response = await api.put(`/api/investors/${id}`, investor, getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update investor');
@@ -39,9 +46,10 @@ export const updateInvestor = createAsyncThunk(
 
 export const deleteInvestor = createAsyncThunk(
   'investors/deleteInvestor',
-  async (id, { rejectWithValue }) => {
+  async (id, { rejectWithValue, getState }) => {
     try {
-      await api.delete(`/api/investors/${id}`);
+      const { auth } = getState();
+      await api.delete(`/api/investors/${id}`, getConfig(auth.admin.token));
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete investor');

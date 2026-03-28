@@ -8,10 +8,13 @@ import PropertyTypes from './pages/PropertyTypes';
 import PropertyConditions from './pages/PropertyConditions';
 import Landmarks from './pages/Landmarks';
 import Leads from './pages/Leads';
+import LeadForm from './pages/LeadForm';
+import LeadView from './pages/LeadView';
 import Builders from './pages/Builders';
 import BuilderForm from './pages/BuilderForm';
 import Investors from './pages/Investors';
 import InvestorForm from './pages/InvestorForm';
+import FBAdsLeads from './pages/FBAdsLeads';
 import PrivateRoute from './components/PrivateRoute';
 
 const theme = createTheme({
@@ -36,6 +39,10 @@ function App() {
         <Route path="/property-conditions" element={<PrivateRoute><PropertyConditions /></PrivateRoute>} />
         <Route path="/landmarks" element={<PrivateRoute><Landmarks /></PrivateRoute>} />
         <Route path="/leads" element={<PrivateRoute><Leads /></PrivateRoute>} />
+        <Route path="/leads/new" element={<PrivateRoute><LeadForm /></PrivateRoute>} />
+        <Route path="/leads/edit/:id" element={<PrivateRoute><LeadForm /></PrivateRoute>} />
+        <Route path="/leads/view/:id" element={<PrivateRoute><LeadView /></PrivateRoute>} />
+        <Route path="/fb-ads-leads" element={<PrivateRoute><FBAdsLeads /></PrivateRoute>} />
         <Route path="/builders" element={<PrivateRoute><Builders /></PrivateRoute>} />
         <Route path="/builders/new" element={<PrivateRoute><BuilderForm /></PrivateRoute>} />
         <Route path="/builders/edit/:id" element={<PrivateRoute><BuilderForm /></PrivateRoute>} />

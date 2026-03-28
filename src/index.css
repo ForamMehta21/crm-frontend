@@ -1,0 +1,75 @@
+/* Responsive Tables - Vertical Approach */
+@media screen and (max-width: 900px) {
+  .responsive-table table,
+  .responsive-table thead,
+  .responsive-table tbody,
+  .responsive-table th,
+  .responsive-table td,
+  .responsive-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .responsive-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .responsive-table tr {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    padding: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  .responsive-table td {
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 40% !important;
+    text-align: left !important;
+    min-height: 48px;
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  .responsive-table td:before {
+    content: attr(data-label);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 16px;
+    width: 35%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: bold;
+    color: #555;
+    text-align: left;
+  }
+
+  .responsive-table td:last-child {
+    border-bottom: 0;
+  }
+  
+  /* Reset button align */
+  .responsive-table td[data-label="Actions"],
+  .responsive-table td[data-label="Expand"] {
+      justify-content: flex-end !important;
+      gap: 8px;
+  }
+
+  .responsive-table td.collapse-cell {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-bottom: 16px !important;
+    display: block !important;
+  }
+  
+  .responsive-table td.collapse-cell:before {
+    display: none !important;
+  }
+}

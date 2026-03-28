@@ -1,11 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../utils/api';
 
+const getConfig = (token) => ({
+  headers: { Authorization: `Bearer ${token}` },
+});
+
 export const fetchBuilders = createAsyncThunk(
   'builders/fetchBuilders',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
     try {
-      const response = await api.get('/api/builders');
+      const { auth } = getState();
+      const response = await api.get('/api/builders', getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch builders');
@@ -15,9 +20,10 @@ export const fetchBuilders = createAsyncThunk(
 
 export const createBuilder = createAsyncThunk(
   'builders/createBuilder',
-  async (builderData, { rejectWithValue }) => {
+  async (builderData, { rejectWithValue, getState }) => {
     try {
-      const response = await api.post('/api/builders', builderData);
+      const { auth } = getState();
+      const response = await api.post('/api/builders', builderData, getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to create builder');
@@ -27,9 +33,10 @@ export const createBuilder = createAsyncThunk(
 
 export const updateBuilder = createAsyncThunk(
   'builders/updateBuilder',
-  async ({ id, builder }, { rejectWithValue }) => {
+  async ({ id, builder }, { rejectWithValue, getState }) => {
     try {
-      const response = await api.put(`/api/builders/${id}`, builder);
+      const { auth } = getState();
+      const response = await api.put(`/api/builders/${id}`, builder, getConfig(auth.admin.token));
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to update builder');
@@ -39,9 +46,10 @@ export const updateBuilder = createAsyncThunk(
 
 export const deleteBuilder = createAsyncThunk(
   'builders/deleteBuilder',
-  async (id, { rejectWithValue }) => {
+  async (id, { rejectWithValue, getState }) => {
     try {
-      await api.delete(`/api/builders/${id}`);
+      const { auth } = getState();
+      await api.delete(`/api/builders/${id}`, getConfig(auth.admin.token));
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to delete builder');

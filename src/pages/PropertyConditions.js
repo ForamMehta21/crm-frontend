@@ -97,9 +97,20 @@ const PropertyConditions = () => {
   return (
     <Layout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h4">Property Conditions</Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            mb: 3,
+            gap: 2
+          }}
+        >
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+            Property Conditions
+          </Typography>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen} size="small">
             Add Property Condition
           </Button>
         </Box>
@@ -109,7 +120,7 @@ const PropertyConditions = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} className="responsive-table">
             <Table>
               <TableHead>
                 <TableRow>
@@ -120,10 +131,10 @@ const PropertyConditions = () => {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item._id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell align="right">
+                  <TableRow key={item._id} className="responsive-row">
+                    <TableCell data-label="Name">{item.name}</TableCell>
+                    <TableCell data-label="Description">{item.description}</TableCell>
+                    <TableCell data-label="Actions" align="right">
                       <IconButton color="primary" onClick={() => handleEdit(item)}>
                         <EditIcon />
                       </IconButton>

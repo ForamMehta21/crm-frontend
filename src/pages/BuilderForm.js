@@ -83,6 +83,7 @@ const BuilderForm = () => {
       } else {
         await dispatch(createBuilder(builderData));
       }
+      await dispatch(fetchBuilders());
       navigate('/builders');
     },
   });
@@ -256,14 +257,15 @@ const BuilderForm = () => {
               </Grid>
 
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column-reverse', sm: 'row' }, gap: 2, mt: 2 }}>
                   <Button
                     variant="outlined"
                     onClick={() => navigate('/builders')}
+                    fullWidth
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" variant="contained">
+                  <Button type="submit" variant="contained" fullWidth>
                     {isEditMode ? 'Update' : 'Create'}
                   </Button>
                 </Box>

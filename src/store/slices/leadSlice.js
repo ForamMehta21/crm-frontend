@@ -16,6 +16,16 @@ export const fetchLeads = createAsyncThunk('leads/fetch', async (filters, { reje
   }
 });
 
+export const fetchLeadById = createAsyncThunk('leads/fetchById', async (id, { rejectWithValue, getState }) => {
+  try {
+    const { auth } = getState();
+    const { data } = await api.get(`/api/leads/${id}`, getConfig(auth.admin.token));
+    return data.data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch lead');
+  }
+});
+
 export const fetchLeadStats = createAsyncThunk('leads/stats', async (_, { rejectWithValue, getState }) => {
   try {
     const { auth } = getState();
@@ -56,12 +66,39 @@ export const deleteLead = createAsyncThunk('leads/delete', async (id, { rejectWi
   }
 });
 
+export const addComment = createAsyncThunk('leads/addComment', async ({ id, text }, { rejectWithValue, getState }) => {
+  try {
+    const { auth } = getState();
+    const { data } = await api.post(
+      `/api/leads/${id}/comments`,
+      { text },
+      getConfig(auth.admin.token)
+    );
+    return { id, comments: data.data };
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to add comment');
+  }
+});
+
+export const fetchFBAdsLeads = createAsyncThunk('leads/fetchFBAds', async (filters, { rejectWithValue, getState }) => {
+  try {
+    const { auth } = getState();
+    const params = new URLSearchParams(filters).toString();
+    const { data } = await api.get(`/api/leads/fb-ads?${params}`, getConfig(auth.admin.token));
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch FB-Ads leads');
+  }
+});
+
 const leadSlice = createSlice({
   name: 'leads',
   initialState: {
     items: [],
+    currentLead: null,
     stats: null,
     loading: false,
+    currentLeadLoading: false,
     error: null,
     pagination: {
       page: 1,
@@ -72,6 +109,9 @@ const leadSlice = createSlice({
   reducers: {
     clearError: (state) => {
       state.error = null;
+    },
+    clearCurrentLead: (state) => {
+      state.currentLead = null;
     },
   },
   extraReducers: (builder) => {
@@ -92,6 +132,35 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchFBAdsLeads.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchFBAdsLeads.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.data;
+        state.pagination = {
+          page: action.payload.page,
+          pages: action.payload.pages,
+          total: action.payload.total,
+        };
+      })
+      .addCase(fetchFBAdsLeads.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // fetchLeadById
+      .addCase(fetchLeadById.pending, (state) => {
+        state.currentLeadLoading = true;
+        state.currentLead = null;
+      })
+      .addCase(fetchLeadById.fulfilled, (state, action) => {
+        state.currentLeadLoading = false;
+        state.currentLead = action.payload;
+      })
+      .addCase(fetchLeadById.rejected, (state, action) => {
+        state.currentLeadLoading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchLeadStats.fulfilled, (state, action) => {
         state.stats = action.payload;
       })
@@ -103,12 +172,26 @@ const leadSlice = createSlice({
         if (index !== -1) {
           state.items[index] = action.payload;
         }
+        if (state.currentLead?._id === action.payload._id) {
+          state.currentLead = action.payload;
+        }
       })
       .addCase(deleteLead.fulfilled, (state, action) => {
         state.items = state.items.filter(item => item._id !== action.payload);
+      })
+      // addComment — update comments on the current lead and in items list
+      .addCase(addComment.fulfilled, (state, action) => {
+        const { id, comments } = action.payload;
+        if (state.currentLead?._id === id) {
+          state.currentLead.comments = comments;
+        }
+        const idx = state.items.findIndex(i => i._id === id);
+        if (idx !== -1) {
+          state.items[idx].comments = comments;
+        }
       });
   },
 });
 
-export const { clearError } = leadSlice.actions;
+export const { clearError, clearCurrentLead } = leadSlice.actions;
 export default leadSlice.reducer;

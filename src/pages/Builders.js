@@ -44,12 +44,24 @@ const Builders = () => {
   return (
     <Layout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">Builders</Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            mb: 3,
+            gap: 2
+          }}
+        >
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+            Builders
+          </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/builders/new')}
+            size="small"
           >
             Add Builder
           </Button>
@@ -60,7 +72,7 @@ const Builders = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} className="responsive-table">
             <Table>
               <TableHead>
                 <TableRow>
@@ -75,26 +87,26 @@ const Builders = () => {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item._id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.number}</TableCell>
-                    <TableCell>{item.companyName}</TableCell>
-                    <TableCell>
+                  <TableRow key={item._id} className="responsive-row">
+                    <TableCell data-label="Name">{item.name}</TableCell>
+                    <TableCell data-label="Phone Number">{item.number}</TableCell>
+                    <TableCell data-label="Company Name">{item.companyName}</TableCell>
+                    <TableCell data-label="Running Projects">
                       {item.runningProjects?.map((project, idx) => (
                         <Chip key={idx} label={project} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
                       ))}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Upcoming Projects">
                       {item.upcomingProjects?.map((project, idx) => (
                         <Chip key={idx} label={project} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
                       ))}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Completed Projects">
                       {item.completedProjects?.map((project, idx) => (
                         <Chip key={idx} label={project} size="small" sx={{ mr: 0.5, mb: 0.5 }} />
                       ))}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell data-label="Actions" align="right">
                       <IconButton onClick={() => navigate(`/builders/edit/${item._id}`)} color="primary">
                         <EditIcon />
                       </IconButton>

@@ -110,9 +110,20 @@ const Landmarks = () => {
   return (
     <Layout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h4">Landmarks</Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            mb: 3,
+            gap: 2
+          }}
+        >
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+            Landmarks
+          </Typography>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen} size="small">
             Add Landmark
           </Button>
         </Box>
@@ -157,7 +168,7 @@ const Landmarks = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} className="responsive-table">
             <Table>
               <TableHead>
                 <TableRow>
@@ -170,12 +181,12 @@ const Landmarks = () => {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item._id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.city}</TableCell>
-                    <TableCell>{item.area}</TableCell>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell align="right">
+                  <TableRow key={item._id} className="responsive-row">
+                    <TableCell data-label="Name">{item.name}</TableCell>
+                    <TableCell data-label="City">{item.city}</TableCell>
+                    <TableCell data-label="Area">{item.area}</TableCell>
+                    <TableCell data-label="Description">{item.description}</TableCell>
+                    <TableCell data-label="Actions" align="right">
                       <IconButton color="primary" onClick={() => handleEdit(item)}>
                         <EditIcon />
                       </IconButton>

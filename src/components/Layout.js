@@ -37,6 +37,7 @@ const menuItems = [
   { text: 'Leads', icon: <PeopleIcon />, path: '/leads' },
   { text: 'Builders', icon: <BusinessIcon />, path: '/builders' },
   { text: 'Investors', icon: <AccountBalanceIcon />, path: '/investors' },
+  { text: 'FB-Ads(Scarlet)', icon: <PeopleIcon />, path: '/fb-ads-leads' },
 ];
 
 const Layout = ({ children }) => {

@@ -101,9 +101,20 @@ const PropertyTypes = () => {
   return (
     <Layout>
       <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h4">Property Types</Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            mb: 3,
+            gap: 2
+          }}
+        >
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+            Property Types
+          </Typography>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen} size="small">
             Add Property Type
           </Button>
         </Box>
@@ -113,7 +124,7 @@ const PropertyTypes = () => {
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer component={Paper}>
+          <TableContainer component={Paper} className="responsive-table">
             <Table>
               <TableHead>
                 <TableRow>
@@ -125,17 +136,17 @@ const PropertyTypes = () => {
               </TableHead>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item._id}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>
+                  <TableRow key={item._id} className="responsive-row">
+                    <TableCell data-label="Name">{item.name}</TableCell>
+                    <TableCell data-label="Category">
                       <Chip 
                         label={item.category} 
                         size="small" 
                         color={item.category === 'Residential' ? 'primary' : 'secondary'}
                       />
                     </TableCell>
-                    <TableCell>{item.description}</TableCell>
-                    <TableCell align="right">
+                    <TableCell data-label="Description">{item.description}</TableCell>
+                    <TableCell data-label="Actions" align="right">
                       <IconButton color="primary" onClick={() => handleEdit(item)}>
                         <EditIcon />
                       </IconButton>
