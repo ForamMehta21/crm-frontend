@@ -75,15 +75,6 @@ const propertyPreferenceColors = {
   'Old': 'warning',
 };
 
-// Columns that are sortable server-side
-const SORTABLE_COLUMNS = {
-  fullName:    'Name',
-  leadType:    'Type',
-
-  leadStatus:  'Status',
-  createdAt:   'Created At',
-};
-
 /**
  * Format an ISO date string to dd/MM/yyyy HH:mm
  */

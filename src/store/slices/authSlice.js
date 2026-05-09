@@ -29,7 +29,11 @@ export const checkAuth = createAsyncThunk('auth/checkAuth', async (_, { getState
       });
       return { ...data.data, token: auth.admin.token };
     } catch (networkError) {
-      // If network fails but token is still valid, use cached data
+      // If 401, token is invalid on server - reject
+      if (networkError.response?.status === 401) {
+        return rejectWithValue('Token invalid');
+      }
+      // If network fails but token is still valid locally, use cached data
       return auth.admin;
     }
   } catch (error) {

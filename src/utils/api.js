@@ -33,10 +33,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const store = getStore();
       if (store) {
-        store.dispatch({ type: 'auth/logout' });
-      }
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+        const state = store.getState();
+        // Only logout if not already on login page and not during auth check
+        if (state.auth?.admin) {
+          store.dispatch({ type: 'auth/logout' });
+        }
       }
     }
     return Promise.reject(error);

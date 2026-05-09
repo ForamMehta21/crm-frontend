@@ -18,7 +18,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
   MenuItem,
   CircularProgress,
   Alert,
@@ -92,7 +91,7 @@ const LeadForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { items, currentLead, currentLeadLoading } = useSelector((state) => state.leads);
+  const { currentLead, currentLeadLoading } = useSelector((state) => state.leads);
   const { items: propertyTypes } = useSelector((state) => state.propertyTypes);
   const { items: propertyConditions } = useSelector((state) => state.propertyConditions);
   const { items: landmarks } = useSelector((state) => state.landmarks);

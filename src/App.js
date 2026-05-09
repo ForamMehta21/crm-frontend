@@ -35,7 +35,12 @@ function App() {
     if (!isInitialized && !initAttempted.current) {
       initAttempted.current = true;
       if (admin?.token) {
-        dispatch(checkAuth());
+        dispatch(checkAuth()).finally(() => {
+          // Safety: ensure isInitialized is set even if something goes wrong
+          setTimeout(() => {
+            dispatch(setInitialized());
+          }, 0);
+        });
       } else {
         dispatch(setInitialized());
       }

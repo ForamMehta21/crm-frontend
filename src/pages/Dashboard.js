@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardActionArea,
-  alpha,
   LinearProgress,
   Chip,
   Table,
@@ -22,6 +21,7 @@ import {
   Skeleton,
   Tooltip,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EventIcon from '@mui/icons-material/Event';
