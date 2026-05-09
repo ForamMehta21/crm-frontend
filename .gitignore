@@ -12,4 +12,8 @@ build
 firebase-debug.log
 firebase.json
 hosting.json
+.firebase
+.firebase-hosting-deploy-config.json
+.firebase/*
+
 

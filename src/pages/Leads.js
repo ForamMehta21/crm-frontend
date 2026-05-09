@@ -22,6 +22,12 @@ import {
   TablePagination,
   TableSortLabel,
   Tooltip,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -31,13 +37,23 @@ import DownloadIcon from '@mui/icons-material/Download';
 import UploadIcon from '@mui/icons-material/Upload';
 import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import TodayIcon from '@mui/icons-material/Today';
 import Layout from '../components/Layout';
 import LeadImport from '../components/LeadImport';
 import {
   fetchLeads,
   deleteLead,
+  updateLead,
 } from '../store/slices/leadSlice';
 import { exportLeads, downloadTemplate } from '../store/slices/leadImportExportSlice';
+
+const buildWaUrl = (phoneNumber) => {
+  let phone = phoneNumber.replace(/\D/g, '');
+  if (phone.length === 10) phone = `91${phone}`;
+  else if (phone.length > 10 && phone.startsWith('0')) phone = `91${phone.substring(1)}`;
+  return `https://api.whatsapp.com/send?phone=${phone}`;
+};
 
 const leadTypes = ['Buyer', 'Broker', 'Seller'];
 const leadStatuses = [
@@ -88,8 +104,12 @@ const Leads = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { items, loading, pagination } = useSelector((state) => state.leads);
+  const { admin } = useSelector((state) => state.auth);
+  const isAdmin = admin?.role === 'admin';
 
   const [importOpen, setImportOpen] = useState(false);
+  const [snack, setSnack] = useState({ open: false, message: '', severity: 'success' });
+  const [dateDialog, setDateDialog] = useState({ open: false, leadId: null, value: '' });
 
   // Read ?status and ?type from URL (set by Dashboard card clicks)
   const queryParams = new URLSearchParams(location.search);
@@ -125,6 +145,25 @@ const Leads = () => {
 
   const handleDownloadTemplate = () => {
     dispatch(downloadTemplate());
+  };
+
+  const toLocalDT = (date) => {
+    const d = new Date(date);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+
+  const handleOpenDateDialog = (lead) => {
+    const val = lead.nextCallDate ? toLocalDT(lead.nextCallDate) : toLocalDT(new Date());
+    setDateDialog({ open: true, leadId: lead._id, value: val });
+  };
+
+  const handleSaveCallDate = () => {
+    dispatch(updateLead({ id: dateDialog.leadId, lead: { nextCallDate: new Date(dateDialog.value) } })).then(() => {
+      setSnack({ open: true, message: 'Next call date updated!', severity: 'success' });
+      dispatch(fetchLeads(filters));
+      setDateDialog({ open: false, leadId: null, value: '' });
+    });
   };
 
   const handleImportComplete = () => {
@@ -170,33 +209,39 @@ const Leads = () => {
             Leads Management
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<DescriptionIcon />}
-              onClick={handleDownloadTemplate}
-              size="small"
-            >
-              Template
-            </Button>
-            <Button
-              variant="outlined"
-              color="success"
-              startIcon={<DownloadIcon />}
-              onClick={handleExport}
-              size="small"
-            >
-              Export
-            </Button>
-            <Button
-              variant="outlined"
-              color="info"
-              startIcon={<UploadIcon />}
-              onClick={() => setImportOpen(true)}
-              size="small"
-            >
-              Import
-            </Button>
+            {isAdmin && (
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<DescriptionIcon />}
+                onClick={handleDownloadTemplate}
+                size="small"
+              >
+                Template
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outlined"
+                color="success"
+                startIcon={<DownloadIcon />}
+                onClick={handleExport}
+                size="small"
+              >
+                Export
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outlined"
+                color="info"
+                startIcon={<UploadIcon />}
+                onClick={() => setImportOpen(true)}
+                size="small"
+              >
+                Import
+              </Button>
+            )}
             <Button
               variant="contained"
               color="primary"
@@ -337,14 +382,32 @@ const Leads = () => {
                 <TableBody>
                   {items.map((item) => (
                     <TableRow key={item._id} hover className="responsive-row">
-                      <TableCell data-label="Name">{item.fullName}</TableCell>
+                      <TableCell
+                        data-label="Name"
+                        sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: 'primary.main' } }}
+                        onClick={() => navigate(`/leads/edit/${item._id}`)}
+                      >
+                        {item.fullName}
+                      </TableCell>
                       <TableCell data-label="Type">
                         <Chip label={item.leadType} size="small" />
                       </TableCell>
                       <TableCell data-label="Phone">
-                        <a href={`tel:${item.phoneNumber}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                          {item.phoneNumber}
-                        </a>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <a href={`tel:${item.phoneNumber}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                            {item.phoneNumber}
+                          </a>
+                          {item.phoneNumber && (
+                            <a
+                              href={buildWaUrl(item.phoneNumber)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ display: 'inline-flex', alignItems: 'center', color: '#25D366', textDecoration: 'none', padding: '3px', borderRadius: '50%', lineHeight: 0 }}
+                            >
+                              <WhatsAppIcon style={{ fontSize: 18 }} />
+                            </a>
+                          )}
+                        </Box>
                       </TableCell>
 
                       <TableCell data-label="Ref">{item.ref || '-'}</TableCell>
@@ -372,21 +435,28 @@ const Leads = () => {
                         </Tooltip>
                       </TableCell>
                       <TableCell data-label="Actions" align="right" sx={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title="Set Next Call Date">
+                          <IconButton color="success" onClick={() => handleOpenDateDialog(item)} size="small">
+                            <TodayIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                         <IconButton color="info" onClick={() => navigate(`/leads/view/${item._id}`)} size="small">
                           <VisibilityIcon fontSize="small" />
                         </IconButton>
                         <IconButton color="primary" onClick={() => navigate(`/leads/edit/${item._id}`)} size="small">
                           <EditIcon fontSize="small" />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDelete(item._id)} size="small">
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {isAdmin && (
+                          <IconButton color="error" onClick={() => handleDelete(item._id)} size="small">
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
                   {items.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={11} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                      <TableCell colSpan={isAdmin ? 11 : 10} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                         No leads found.
                       </TableCell>
                     </TableRow>
@@ -406,12 +476,42 @@ const Leads = () => {
           </>
         )}
 
-        <LeadImport
-          open={importOpen}
-          onClose={() => setImportOpen(false)}
-          onImportComplete={handleImportComplete}
-        />
+        {isAdmin && (
+          <LeadImport
+            open={importOpen}
+            onClose={() => setImportOpen(false)}
+            onImportComplete={handleImportComplete}
+          />
+        )}
       </Container>
+
+      <Dialog open={dateDialog.open} onClose={() => setDateDialog({ ...dateDialog, open: false })} maxWidth="xs" fullWidth>
+        <DialogTitle>Set Next Call Date & Time</DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <TextField
+            fullWidth
+            type="datetime-local"
+            value={dateDialog.value}
+            onChange={(e) => setDateDialog({ ...dateDialog, value: e.target.value })}
+            InputLabelProps={{ shrink: true }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDateDialog({ open: false, leadId: null, value: '' })}>Cancel</Button>
+          <Button variant="contained" onClick={handleSaveCallDate} disabled={!dateDialog.value}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3000}
+        onClose={() => setSnack({ ...snack, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnack({ ...snack, open: false })} severity={snack.severity} sx={{ width: '100%' }}>
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { useDispatch, useSelector } from 'react-redux';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PropertyTypes from './pages/PropertyTypes';
@@ -15,22 +16,34 @@ import BuilderForm from './pages/BuilderForm';
 import Investors from './pages/Investors';
 import InvestorForm from './pages/InvestorForm';
 import FBAdsLeads from './pages/FBAdsLeads';
+import Users from './pages/Users';
+import UserForm from './pages/UserForm';
+import WhatsappTemplates from './pages/Whatsapp/WhatsappTemplates';
+import WhatsappCampaigns from './pages/Whatsapp/WhatsappCampaigns';
+import WhatsappCampaignNew from './pages/Whatsapp/WhatsappCampaignNew';
+import WhatsappCampaignDetail from './pages/Whatsapp/WhatsappCampaignDetail';
 import PrivateRoute from './components/PrivateRoute';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
+import modernTheme from './theme/modernTheme';
+import { checkAuth, setInitialized } from './store/slices/authSlice';
 
 function App() {
+  const dispatch = useDispatch();
+  const { admin, isInitialized } = useSelector((state) => state.auth);
+  const initAttempted = useRef(false);
+
+  useEffect(() => {
+    if (!isInitialized && !initAttempted.current) {
+      initAttempted.current = true;
+      if (admin?.token) {
+        dispatch(checkAuth());
+      } else {
+        dispatch(setInitialized());
+      }
+    }
+  }, [dispatch, admin, isInitialized]);
+
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={modernTheme}>
       <CssBaseline />
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -49,6 +62,13 @@ function App() {
         <Route path="/investors" element={<PrivateRoute><Investors /></PrivateRoute>} />
         <Route path="/investors/new" element={<PrivateRoute><InvestorForm /></PrivateRoute>} />
         <Route path="/investors/edit/:id" element={<PrivateRoute><InvestorForm /></PrivateRoute>} />
+        <Route path="/users" element={<PrivateRoute><Users /></PrivateRoute>} />
+        <Route path="/users/new" element={<PrivateRoute><UserForm /></PrivateRoute>} />
+        <Route path="/users/edit/:id" element={<PrivateRoute><UserForm /></PrivateRoute>} />
+        <Route path="/whatsapp/templates" element={<PrivateRoute><WhatsappTemplates /></PrivateRoute>} />
+        <Route path="/whatsapp/campaigns" element={<PrivateRoute><WhatsappCampaigns /></PrivateRoute>} />
+        <Route path="/whatsapp/campaigns/new" element={<PrivateRoute><WhatsappCampaignNew /></PrivateRoute>} />
+        <Route path="/whatsapp/campaigns/:id" element={<PrivateRoute><WhatsappCampaignDetail /></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ThemeProvider>

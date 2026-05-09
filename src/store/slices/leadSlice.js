@@ -80,6 +80,16 @@ export const addComment = createAsyncThunk('leads/addComment', async ({ id, text
   }
 });
 
+export const logWhatsApp = createAsyncThunk('leads/logWhatsApp', async ({ leadIds, message }, { rejectWithValue, getState }) => {
+  try {
+    const { auth } = getState();
+    const { data } = await api.post('/api/leads/whatsapp-log', { leadIds, message }, getConfig(auth.admin.token));
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to log WhatsApp sends');
+  }
+});
+
 export const fetchFBAdsLeads = createAsyncThunk('leads/fetchFBAds', async (filters, { rejectWithValue, getState }) => {
   try {
     const { auth } = getState();
@@ -91,12 +101,24 @@ export const fetchFBAdsLeads = createAsyncThunk('leads/fetchFBAds', async (filte
   }
 });
 
+export const fetchTodayCalls = createAsyncThunk('leads/fetchTodayCalls', async (_, { rejectWithValue, getState }) => {
+  try {
+    const { auth } = getState();
+    const { data } = await api.get('/api/leads/today-calls', getConfig(auth.admin.token));
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch today calls');
+  }
+});
+
 const leadSlice = createSlice({
   name: 'leads',
   initialState: {
     items: [],
     currentLead: null,
     stats: null,
+    todayCalls: [],
+    todayCallsLoading: false,
     loading: false,
     currentLeadLoading: false,
     error: null,
@@ -189,6 +211,17 @@ const leadSlice = createSlice({
         if (idx !== -1) {
           state.items[idx].comments = comments;
         }
+      })
+      .addCase(fetchTodayCalls.pending, (state) => {
+        state.todayCallsLoading = true;
+      })
+      .addCase(fetchTodayCalls.fulfilled, (state, action) => {
+        state.todayCallsLoading = false;
+        state.todayCalls = action.payload.data || [];
+      })
+      .addCase(fetchTodayCalls.rejected, (state) => {
+        state.todayCallsLoading = false;
+        state.todayCalls = [];
       });
   },
 });
