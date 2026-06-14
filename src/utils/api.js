@@ -34,9 +34,13 @@ api.interceptors.response.use(
       const store = getStore();
       if (store) {
         const state = store.getState();
-        // Only logout if not already on login page and not during auth check
+        // Only logout if a user is currently logged in (not during the login attempt itself)
         if (state.auth?.admin) {
           store.dispatch({ type: 'auth/logout' });
+          // No navigate() call here — PrivateRoute watches auth.admin and
+          // automatically redirects to /login when it becomes null.
+          // Using navigate() here was unreliable because the reference may be
+          // null during app initialisation (useEffect hasn't run yet).
         }
       }
     }

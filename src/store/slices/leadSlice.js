@@ -115,14 +115,21 @@ const leadSlice = createSlice({
   name: 'leads',
   initialState: {
     items: [],
+    fbAdsItems: [],
     currentLead: null,
     stats: null,
     todayCalls: [],
     todayCallsLoading: false,
     loading: false,
+    fbAdsLoading: false,
     currentLeadLoading: false,
     error: null,
     pagination: {
+      page: 1,
+      pages: 1,
+      total: 0,
+    },
+    fbAdsPagination: {
       page: 1,
       pages: 1,
       total: 0,
@@ -155,19 +162,19 @@ const leadSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(fetchFBAdsLeads.pending, (state) => {
-        state.loading = true;
+        state.fbAdsLoading = true;
       })
       .addCase(fetchFBAdsLeads.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload.data;
-        state.pagination = {
+        state.fbAdsLoading = false;
+        state.fbAdsItems = action.payload.data;
+        state.fbAdsPagination = {
           page: action.payload.page,
           pages: action.payload.pages,
           total: action.payload.total,
         };
       })
       .addCase(fetchFBAdsLeads.rejected, (state, action) => {
-        state.loading = false;
+        state.fbAdsLoading = false;
         state.error = action.payload;
       })
       // fetchLeadById

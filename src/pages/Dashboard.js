@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -35,15 +35,9 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import Layout from '../components/Layout';
 import { fetchLeadStats, fetchTodayCalls } from '../store/slices/leadSlice';
+import { buildWaUrl } from '../utils/whatsapp';
 
-const buildWaUrl = (phoneNumber) => {
-  let phone = phoneNumber.replace(/\D/g, '');
-  if (phone.length === 10) phone = `91${phone}`;
-  else if (phone.length > 10 && phone.startsWith('0')) phone = `91${phone.substring(1)}`;
-  return `https://api.whatsapp.com/send?phone=${phone}`;
-};
-
-const FunnelCard = ({ title, subtitle, count, gradient, icon: Icon, onClick, trend }) => (
+const FunnelCard = memo(({ title, subtitle, count, gradient, icon: Icon, onClick, trend }) => (
   <Card
     sx={{
       background: gradient,
@@ -114,9 +108,9 @@ const FunnelCard = ({ title, subtitle, count, gradient, icon: Icon, onClick, tre
       </CardContent>
     </CardActionArea>
   </Card>
-);
+));
 
-const StatCard = ({ title, value, icon: Icon, color, progress }) => (
+const StatCard = memo(({ title, value, icon: Icon, color, progress }) => (
   <Card
     sx={{
       backgroundColor: (theme) => alpha(theme.palette.background.paper, 0.6),
@@ -167,7 +161,7 @@ const StatCard = ({ title, value, icon: Icon, color, progress }) => (
       )}
     </CardContent>
   </Card>
-);
+));
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -179,27 +173,27 @@ const Dashboard = () => {
     dispatch(fetchTodayCalls());
   }, [dispatch]);
 
-  const todayLabel = new Date().toLocaleDateString('en-IN', {
+  const todayLabel = useMemo(() => new Date().toLocaleDateString('en-IN', {
     timeZone: 'Asia/Kolkata',
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  }), []);
 
-  const getStatusCount = (statusName) => {
+  const getStatusCount = useCallback((statusName) => {
     if (!stats?.byStatus) return 0;
     const status = stats.byStatus.find(s => s._id === statusName);
     return status ? status.count : 0;
-  };
+  }, [stats]);
 
-  const goToLeads = (status) => {
+  const goToLeads = useCallback((status) => {
     if (status) {
       navigate(`/leads?status=${encodeURIComponent(status)}`);
     } else {
       navigate('/leads');
     }
-  };
+  }, [navigate]);
 
   const totalLeads = stats?.total || 0;
   const followUpCount = getStatusCount('Follow-up');
@@ -367,10 +361,10 @@ const Dashboard = () => {
             <FunnelCard
               title="Drop Off"
               subtitle="Closed or lost leads"
-              count={getStatusCount('booed someware else')}
+              count={getStatusCount('booked somewhere else')}
               gradient="linear-gradient(135deg, #64748b 0%, #475569 100%)"
               icon={CancelIcon}
-              onClick={() => goToLeads('booed someware else')}
+              onClick={() => goToLeads('booked somewhere else')}
             />
           </Grid>
         </Grid>

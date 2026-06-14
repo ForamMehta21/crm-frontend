@@ -47,33 +47,13 @@ import {
   updateLead,
 } from '../store/slices/leadSlice';
 import { exportLeads, downloadTemplate } from '../store/slices/leadImportExportSlice';
-
-const buildWaUrl = (phoneNumber) => {
-  let phone = phoneNumber.replace(/\D/g, '');
-  if (phone.length === 10) phone = `91${phone}`;
-  else if (phone.length > 10 && phone.startsWith('0')) phone = `91${phone.substring(1)}`;
-  return `https://api.whatsapp.com/send?phone=${phone}`;
-};
-
-const leadTypes = ['Buyer', 'Broker', 'Seller'];
-const leadStatuses = [
-  'New', 'Attempted 1', 'Attempted 2', 'Attempted 3',
-  'Follow-up', 'unqualified', 'warm', 'hot',
-  'site visit planned', 'site visit done', 'booked', 'booed someware else',
-];
-
-const statusColors = {
-  'New': 'info',
-  'Attempted 1': 'primary',
-  'Attempted 2': 'warning',
-  'Attempted 3': 'success',
-  'Follow-up': 'error',
-};
-
-const propertyPreferenceColors = {
-  'New': 'success',
-  'Old': 'warning',
-};
+import { buildWaUrl } from '../utils/whatsapp';
+import {
+  LEAD_TYPES as leadTypes,
+  LEAD_STATUSES as leadStatuses,
+  STATUS_COLORS as statusColors,
+  PROPERTY_PREFERENCE_COLORS as propertyPreferenceColors,
+} from '../constants/leads';
 
 /**
  * Format an ISO date string to dd/MM/yyyy HH:mm

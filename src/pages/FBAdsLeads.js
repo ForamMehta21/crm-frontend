@@ -37,30 +37,13 @@ import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import TodayIcon from "@mui/icons-material/Today";
 import Layout from "../components/Layout";
 import { fetchFBAdsLeads, deleteLead, updateLead } from "../store/slices/leadSlice";
-
-const buildWaUrl = (phoneNumber) => {
-  let phone = phoneNumber.replace(/\D/g, "");
-  if (phone.length === 10) phone = `91${phone}`;
-  else if (phone.length > 10 && phone.startsWith("0")) phone = `91${phone.substring(1)}`;
-  return `https://api.whatsapp.com/send?phone=${phone}`;
-};
-
-const leadTypes = ["Buyer", "Broker", "Seller"];
-const leadStatuses = [
-  "New", "Attempted 1", "Attempted 2", "Attempted 3", "Follow-up",
-  "unqualified", "warm", "hot", "site visit planned", "site visit done",
-  "booked", "booed someware else",
-];
-
-const statusColors = {
-  New: "info",
-  "Attempted 1": "primary",
-  "Attempted 2": "warning",
-  "Attempted 3": "success",
-  "Follow-up": "error",
-};
-
-const propertyPreferenceColors = { New: "success", Old: "warning" };
+import { buildWaUrl } from "../utils/whatsapp";
+import {
+  LEAD_TYPES as leadTypes,
+  LEAD_STATUSES as leadStatuses,
+  STATUS_COLORS as statusColors,
+  PROPERTY_PREFERENCE_COLORS as propertyPreferenceColors,
+} from "../constants/leads";
 
 const formatDate = (dateStr) => {
   if (!dateStr) return "-";
@@ -72,7 +55,7 @@ const formatDate = (dateStr) => {
 const FBAdsLeads = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { items, loading, pagination } = useSelector((state) => state.leads);
+  const { fbAdsItems: items, fbAdsLoading: loading, fbAdsPagination: pagination } = useSelector((state) => state.leads);
 
   const [snack, setSnack] = useState({ open: false, message: "", severity: "success" });
   const [dateDialog, setDateDialog] = useState({ open: false, leadId: null, value: "" });

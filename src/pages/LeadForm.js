@@ -42,6 +42,15 @@ import {
 import { fetchPropertyTypes } from '../store/slices/propertyTypeSlice';
 import { fetchPropertyConditions } from '../store/slices/propertyConditionSlice';
 import { fetchLandmarks } from '../store/slices/landmarkSlice';
+import {
+  LEAD_TYPES as leadTypes,
+  LEAD_STATUSES as leadStatuses,
+  PROPERTY_TYPE_OPTIONS as propertyTypeOptions,
+  PURPOSE_OF_BUYING_OPTIONS as purposeOfBuyingOptions,
+  PROPERTY_PREFERENCE_OPTIONS as propertyPreferenceOptions,
+  AGE_OF_PROPERTY_OPTIONS as ageOfPropertyOptions,
+  TIMELINE_TO_BUY_OPTIONS as timelineToBuyOptions,
+} from '../constants/leads';
 
 const validationSchema = Yup.object({
   leadType: Yup.string().required('Lead type is required'),
@@ -62,18 +71,6 @@ const validationSchema = Yup.object({
   ageOfProperty: Yup.string(),
   timelineToBuy: Yup.string(),
 });
-
-const leadTypes = ['Buyer', 'Broker', 'Seller'];
-const leadStatuses = [
-  'New', 'Attempted 1', 'Attempted 2', 'Attempted 3',
-  'Follow-up', 'unqualified', 'warm', 'hot',
-  'site visit planned', 'site visit done', 'booked', 'booed someware else',
-];
-const propertyTypeOptions = ['Residential Rent', 'Residential Sell', 'Commercial Rent', 'Commercial Sell'];
-const purposeOfBuyingOptions = ['Personal Use', 'Investment', 'Second Home', 'Gift'];
-const propertyPreferenceOptions = ['New', 'Resell'];
-const ageOfPropertyOptions = ['Under Construction', '01-05', '5-10', '11-15', '15-25', '25+'];
-const timelineToBuyOptions = ['0-15 days', '15-25 days', '25-30 days', '30-60 days', '90+ days'];
 
 const formatDateTime = (dateStr) => {
   if (!dateStr) return '-';

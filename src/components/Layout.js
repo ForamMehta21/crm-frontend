@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -71,6 +71,10 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.auth);
+
+  const isAdmin = admin?.role === 'admin';
+
+  const settingsItems = useMemo(() => getSettingsItems(isAdmin), [isAdmin]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -156,6 +160,7 @@ const Layout = ({ children }) => {
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 selected={location.pathname === item.path}
+                aria-current={location.pathname === item.path ? 'page' : undefined}
                 onClick={() => navigate(item.path)}
                 sx={{
                   py: 1.2,
@@ -249,7 +254,7 @@ const Layout = ({ children }) => {
           Settings
         </Typography>
         <List sx={{ py: 1 }}>
-          {getSettingsItems(admin?.role === 'admin').map((item) => (
+          {settingsItems.map((item) => (
             <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 selected={location.pathname === item.path}
@@ -316,6 +321,7 @@ const Layout = ({ children }) => {
           <Tooltip title="Logout">
             <IconButton
               size="small"
+              aria-label="Logout"
               onClick={handleLogout}
               sx={{
                 color: 'text.secondary',
@@ -333,9 +339,10 @@ const Layout = ({ children }) => {
     </Box>
   );
 
-  const currentPageTitle = [...menuItems, ...getSettingsItems(admin?.role === 'admin')].find(
-    (item) => item.path === location.pathname
-  )?.text || 'Dashboard';
+  const currentPageTitle = useMemo(
+    () => [...menuItems, ...settingsItems].find((item) => item.path === location.pathname)?.text || 'Dashboard',
+    [settingsItems, location.pathname]
+  );
 
   return (
     <Box
@@ -357,7 +364,7 @@ const Layout = ({ children }) => {
         <Toolbar sx={{ gap: 2 }}>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
+            aria-label="Open navigation menu"
             edge="start"
             onClick={handleDrawerToggle}
             sx={{ display: { sm: 'none' } }}
@@ -379,6 +386,7 @@ const Layout = ({ children }) => {
           {/* Search Button */}
           <Tooltip title="Search">
             <IconButton
+              aria-label="Search"
               sx={{
                 backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
                 '&:hover': {
@@ -393,6 +401,7 @@ const Layout = ({ children }) => {
           {/* Notifications */}
           <Tooltip title="Notifications">
             <IconButton
+              aria-label="Notifications"
               sx={{
                 backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
                 '&:hover': {
@@ -409,6 +418,7 @@ const Layout = ({ children }) => {
           {/* Settings */}
           <Tooltip title="Settings">
             <IconButton
+              aria-label="Settings"
               sx={{
                 backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
                 '&:hover': {

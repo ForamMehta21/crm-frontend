@@ -263,23 +263,6 @@ const Login = () => {
               )}
             </Button>
 
-            <Box
-              sx={{
-                mt: 4,
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
-                border: '1px solid',
-                borderColor: (theme) => alpha(theme.palette.primary.main, 0.15),
-              }}
-            >
-              <Typography variant="caption" color="text.secondary" display="block" align="center">
-                Demo Credentials
-              </Typography>
-              <Typography variant="body2" color="text.primary" align="center" sx={{ fontWeight: 500 }}>
-                admin@realestate.com / admin123
-              </Typography>
-            </Box>
           </Box>
         </Paper>
 
