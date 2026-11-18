@@ -22,6 +22,9 @@ import {
   Collapse,
   Grid
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { softBg } from '../theme/createAppTheme';
 import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
@@ -38,6 +41,8 @@ import {
 } from '../store/slices/leadImportExportSlice';
 
 const LeadImport = ({ open, onClose, onImportComplete }) => {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -105,7 +110,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
   const invalidRowsCount = validatedRows.filter(row => !row.isValid).length;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xl" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="xl" fullWidth fullScreen={fullScreen}>
       <DialogTitle>Import Leads from Excel</DialogTitle>
       <DialogContent>
         {loading && <LinearProgress sx={{ mb: 2 }} />}
@@ -179,7 +184,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
           <Box>
             <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#e8f5e9' }}>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: (t) => softBg(t, 'success'), borderColor: 'transparent' }}>
                   <Typography variant="h6" color="success.main">
                     <CheckCircleIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Valid Rows: {validRowsCount}
@@ -187,7 +192,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#ffebee' }}>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: (t) => softBg(t, 'error'), borderColor: 'transparent' }}>
                   <Typography variant="h6" color="error.main">
                     <ErrorIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Invalid Rows: {invalidRowsCount}
@@ -195,7 +200,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
                 </Paper>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Paper sx={{ p: 2, bgcolor: '#e3f2fd' }}>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: (t) => softBg(t, 'info'), borderColor: 'transparent' }}>
                   <Typography variant="h6" color="info.main">
                     <WarningIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                     Total Rows: {validatedRows.length}
@@ -247,7 +252,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
                     <React.Fragment key={row.rowNumber}>
                       <TableRow
                         sx={{
-                          bgcolor: row.isValid ? '#f1f8e9' : '#ffebee'
+                          bgcolor: (t) => softBg(t, row.isValid ? 'success' : 'error')
                         }}
                       >
                         <TableCell>{row.rowNumber}</TableCell>
@@ -296,7 +301,7 @@ const LeadImport = ({ open, onClose, onImportComplete }) => {
                       <TableRow>
                         <TableCell colSpan={7} sx={{ p: 0 }}>
                           <Collapse in={expandedRow === row.rowNumber}>
-                            <Box sx={{ p: 2, bgcolor: '#fafafa' }}>
+                            <Box sx={{ p: 2, bgcolor: 'surface.raised' }}>
                               <Grid container spacing={2}>
                                 <Grid item xs={12} md={6}>
                                   <Typography variant="subtitle2">Data:</Typography>

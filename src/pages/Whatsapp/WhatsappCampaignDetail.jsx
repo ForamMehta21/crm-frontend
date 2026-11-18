@@ -33,6 +33,7 @@ import {
   ResponsiveContainer,
   Cell
 } from 'recharts';
+import { useTheme } from '@mui/material/styles';
 import Layout from '../../components/Layout';
 import WaStatCards from '../../components/Whatsapp/WaStatCards';
 import {
@@ -52,9 +53,10 @@ const statusColors = {
   REPLIED: 'warning'
 };
 
-const funnelColors = ['#6366f1', '#3b82f6', '#10b981', '#8b5cf6', '#ef4444', '#f59e0b'];
+const funnelTones = ['primary', 'info', 'success', 'violet', 'error', 'brass'];
 
 const WhatsappCampaignDetail = () => {
+  const theme = useTheme();
   const { id } = useParams();
   const dispatch = useDispatch();
   const { currentCampaign, logs, loading, error, logsPagination } = useSelector((state) => state.whatsapp);
@@ -121,7 +123,7 @@ const WhatsappCampaignDetail = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 600 }}>
             {currentCampaign?.name || 'Campaign Detail'}
@@ -153,38 +155,40 @@ const WhatsappCampaignDetail = () => {
 
       <WaStatCards stats={stats} />
 
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>Delivery Funnel</Typography>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={funnelData} layout="vertical" margin={{ left: 20, right: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-            <XAxis type="number" stroke="#94a3b8" />
-            <YAxis dataKey="name" type="category" stroke="#94a3b8" width={80} />
+          <BarChart data={funnelData} layout="vertical" margin={{ left: 0, right: 16 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+            <XAxis type="number" stroke={theme.palette.text.secondary} tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} />
+            <YAxis dataKey="name" type="category" stroke={theme.palette.text.secondary} tick={{ fill: theme.palette.text.secondary, fontSize: 12 }} width={76} />
             <Tooltip
-              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: 8 }}
-              labelStyle={{ color: '#f1f5f9' }}
+              cursor={{ fill: theme.palette.action.hover }}
+              contentStyle={{ backgroundColor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 8, color: theme.palette.text.primary }}
+              labelStyle={{ color: theme.palette.text.primary, fontWeight: 600 }}
+              itemStyle={{ color: theme.palette.text.secondary }}
             />
             <Bar dataKey="value" radius={[0, 4, 4, 0]}>
               {funnelData.map((entry, index) => (
-                <Cell key={index} fill={funnelColors[index]} />
+                <Cell key={index} fill={theme.palette[funnelTones[index]].main} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </Paper>
 
-      <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Message Logs</Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 }, width: { xs: '100%', sm: 'auto' } }}>
             <TextField
               size="small"
               placeholder="Search by name/phone"
               value={logSearch}
               onChange={(e) => { setLogSearch(e.target.value); setLogPage(0); }}
-              sx={{ width: 200 }}
+              sx={{ width: { xs: '100%', sm: 200 } }}
             />
-            <FormControl size="small" sx={{ minWidth: 140 }}>
+            <FormControl size="small" sx={{ minWidth: 140, flex: { xs: 1, sm: 'none' } }}>
               <InputLabel>Status</InputLabel>
               <Select
                 value={logFilter}
@@ -202,7 +206,7 @@ const WhatsappCampaignDetail = () => {
           </Box>
         </Box>
 
-        <TableContainer>
+        <TableContainer className="responsive-table">
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -225,21 +229,21 @@ const WhatsappCampaignDetail = () => {
               ) : (
                 logs.map((log) => (
                   <TableRow key={log._id} hover>
-                    <TableCell>{log.leadId?.fullName || '—'}</TableCell>
-                    <TableCell>{log.phone}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="Lead Name">{log.leadId?.fullName || '—'}</TableCell>
+                    <TableCell data-label="Phone">{log.phone}</TableCell>
+                    <TableCell data-label="Status">
                       <Chip label={log.status} size="small" color={statusColors[log.status] || 'default'} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Sent At">
                       {log.sentAt ? new Date(log.sentAt).toLocaleString() : '—'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Delivered At">
                       {log.deliveredAt ? new Date(log.deliveredAt).toLocaleString() : '—'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Read At">
                       {log.readAt ? new Date(log.readAt).toLocaleString() : '—'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Failed Reason">
                       <Typography variant="body2" color="error.main" sx={{ fontSize: '0.75rem' }}>
                         {log.failedReason || '—'}
                       </Typography>

@@ -3,16 +3,17 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes" />
-    <meta name="theme-color" content="#6366f1" />
+    <meta name="theme-color" content="#F3F6F5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0B1311" media="(prefers-color-scheme: dark)" />
     <meta name="description" content="Modern Real Estate CRM - Manage leads, properties, and clients efficiently" />
     
     <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="CRM" />
     <meta name="application-name" content="Real Estate CRM" />
-    <meta name="msapplication-TileColor" content="#6366f1" />
+    <meta name="msapplication-TileColor" content="#0E7C6B" />
     <meta name="msapplication-tap-highlight" content="no" />
     <meta name="format-detection" content="telephone=no" />
     
@@ -28,19 +29,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
     <!-- Modern Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
     
     <title>Real Estate CRM</title>
     
     <style>
-      /* Loading screen styles */
+      /* Loading screen: follows the saved theme, else the device setting */
+      :root { --boot-bg: #F3F6F5; --boot-fg: #5A6B66; --boot-accent: #0E7C6B; --boot-track: #D8E1DE; }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) { --boot-bg: #0B1311; --boot-fg: #93A6A0; --boot-accent: #3CC6AE; --boot-track: #24342F; }
+      }
+      :root[data-theme="dark"] { --boot-bg: #0B1311; --boot-fg: #93A6A0; --boot-accent: #3CC6AE; --boot-track: #24342F; }
+      html, body { background: var(--boot-bg); }
       .app-loading {
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+        inset: 0;
+        background: var(--boot-bg);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -48,25 +52,31 @@
         z-index: 9999;
       }
       .app-loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 3px solid rgba(99, 102, 241, 0.3);
-        border-top-color: #6366f1;
+        width: 44px;
+        height: 44px;
+        border: 3px solid var(--boot-track);
+        border-top-color: var(--boot-accent);
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        animation: spin 0.9s linear infinite;
       }
       .app-loading-text {
-        margin-top: 20px;
-        color: #e2e8f0;
-        font-family: 'Inter', sans-serif;
+        margin-top: 18px;
+        color: var(--boot-fg);
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 14px;
         font-weight: 500;
-        letter-spacing: 0.5px;
       }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
+      @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+    <script>
+      /* Apply the saved theme before React loads, so there is no flash of the wrong theme */
+      (function () {
+        try {
+          var pref = localStorage.getItem('crm-color-mode');
+          if (pref === 'light' || pref === 'dark') document.documentElement.setAttribute('data-theme', pref);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

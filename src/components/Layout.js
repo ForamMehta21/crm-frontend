@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   AppBar,
   Box,
-  CssBaseline,
   Drawer,
   IconButton,
   List,
@@ -18,66 +17,216 @@ import {
   Divider,
   Tooltip,
   Badge,
+  useMediaQuery,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import BuildIcon from '@mui/icons-material/Build';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PeopleIcon from '@mui/icons-material/People';
-import BusinessIcon from '@mui/icons-material/Business';
-import CategoryIcon from '@mui/icons-material/Category';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import BuildOutlinedIcon from '@mui/icons-material/BuildOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
+import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import FacebookOutlinedIcon from '@mui/icons-material/FacebookOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import SettingsIcon from '@mui/icons-material/Settings';
-import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import CampaignIcon from '@mui/icons-material/Campaign';
-import ArticleIcon from '@mui/icons-material/Article';
+import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
+import ArticleOutlinedIcon from '@mui/icons-material/ArticleOutlined';
 import { logout } from '../store/slices/authSlice';
+import ThemeModeToggle from './ThemeModeToggle';
+import NotificationBell from './Notifications/NotificationBell';
 
-const drawerWidth = 280;
+const DRAWER_WIDTH = 264;
+const RAIL_WIDTH = 76;
+const CONTENT_MAX_WIDTH = 1440;
+const COLLAPSE_KEY = 'crm-sidebar-collapsed';
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/', badge: null },
-  { text: 'Leads', icon: <PeopleIcon />, path: '/leads', badge: 'hot' },
-  { text: 'Builders', icon: <BusinessIcon />, path: '/builders', badge: null },
-  { text: 'Investors', icon: <AccountBalanceIcon />, path: '/investors', badge: null },
-  { text: 'FB Ads Leads', icon: <PeopleIcon />, path: '/fb-ads-leads', badge: 'new' },
+  { text: 'Dashboard', icon: <DashboardOutlinedIcon />, path: '/', badge: null },
+  { text: 'Leads', icon: <PeopleAltOutlinedIcon />, path: '/leads', badge: 'hot' },
+  { text: 'Builders', icon: <BusinessOutlinedIcon />, path: '/builders', badge: null },
+  { text: 'Investors', icon: <AccountBalanceOutlinedIcon />, path: '/investors', badge: null },
+  { text: 'FB Ads Leads', icon: <FacebookOutlinedIcon />, path: '/fb-ads-leads', badge: 'new' },
+  { text: 'Notifications', icon: <NotificationsNoneOutlinedIcon />, path: '/notifications', badge: null },
 ];
 
 const whatsappItems = [
-  { text: 'Templates', icon: <ArticleIcon />, path: '/whatsapp/templates' },
-  { text: 'Campaigns', icon: <CampaignIcon />, path: '/whatsapp/campaigns' },
+  { text: 'Templates', icon: <ArticleOutlinedIcon />, path: '/whatsapp/templates', whatsapp: true },
+  { text: 'Campaigns', icon: <CampaignOutlinedIcon />, path: '/whatsapp/campaigns', whatsapp: true },
 ];
 
 const getSettingsItems = (isAdmin) => {
   const items = [
-    { text: 'Property Types', icon: <CategoryIcon />, path: '/property-types' },
-    { text: 'Property Conditions', icon: <BuildIcon />, path: '/property-conditions' },
-    { text: 'Landmarks', icon: <LocationOnIcon />, path: '/landmarks' },
+    { text: 'Property Types', icon: <CategoryOutlinedIcon />, path: '/property-types' },
+    { text: 'Property Conditions', icon: <BuildOutlinedIcon />, path: '/property-conditions' },
+    { text: 'Landmarks', icon: <LocationOnOutlinedIcon />, path: '/landmarks' },
   ];
   if (isAdmin) {
-    items.push({ text: 'Users', icon: <ManageAccountsIcon />, path: '/users' });
+    items.push({ text: 'Users', icon: <ManageAccountsOutlinedIcon />, path: '/users' });
   }
   return items;
 };
 
+// Titles for routes that are not in the menu (forms, detail pages)
+const subRouteTitles = [
+  { pattern: '/leads/new', title: 'New Lead' },
+  { pattern: '/leads/edit/:id', title: 'Edit Lead' },
+  { pattern: '/leads/view/:id', title: 'Lead Details' },
+  { pattern: '/builders/new', title: 'New Builder' },
+  { pattern: '/builders/edit/:id', title: 'Edit Builder' },
+  { pattern: '/investors/new', title: 'New Investor' },
+  { pattern: '/investors/edit/:id', title: 'Edit Investor' },
+  { pattern: '/users/new', title: 'New User' },
+  { pattern: '/users/edit/:id', title: 'Edit User' },
+  { pattern: '/whatsapp/campaigns/new', title: 'New Campaign' },
+  { pattern: '/whatsapp/campaigns/:id', title: 'Campaign Details' },
+];
+
+const readCollapsed = () => {
+  try {
+    return window.localStorage.getItem(COLLAPSE_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+/** Section of nav items. `rail` = icon-only with tooltips. */
+const NavSection = ({ title, items, rail, isActive, onNavigate, getBadgeColor }) => (
+  <Box component="nav" aria-label={title} sx={{ mb: 1 }}>
+    {rail ? (
+      <Divider sx={{ mx: 2, my: 1 }} />
+    ) : (
+      <Typography
+        variant="overline"
+        component="div"
+        sx={{ px: 3, pt: 1.5, pb: 0.5, color: 'text.secondary', fontSize: '0.68rem', lineHeight: 1.6 }}
+      >
+        {title}
+      </Typography>
+    )}
+    <List disablePadding>
+      {items.map((item) => {
+        const active = isActive(item.path);
+        const icon = item.badge ? (
+          <Badge variant="dot" color={getBadgeColor(item.badge)} sx={{ '& .MuiBadge-badge': { right: 2, top: 2 } }}>
+            {item.icon}
+          </Badge>
+        ) : (
+          item.icon
+        );
+        const button = (
+          <ListItemButton
+            selected={active}
+            aria-current={active ? 'page' : undefined}
+            aria-label={rail ? item.text : undefined}
+            onClick={() => onNavigate(item.path)}
+            sx={{
+              py: 1,
+              justifyContent: rail ? 'center' : 'flex-start',
+              px: rail ? 0 : 2,
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: rail ? 0 : 38,
+                justifyContent: 'center',
+                ...(item.whatsapp && !active && { color: 'whatsapp.main' }),
+              }}
+            >
+              {icon}
+            </ListItemIcon>
+            {!rail && (
+              <ListItemText
+                primary={item.text}
+                primaryTypographyProps={{ fontSize: '0.875rem', fontWeight: active ? 600 : 500, noWrap: true }}
+              />
+            )}
+          </ListItemButton>
+        );
+        return (
+          <ListItem key={item.path} disablePadding>
+            {rail ? (
+              <Tooltip title={item.text} placement="right">
+                {button}
+              </Tooltip>
+            ) : (
+              button
+            )}
+          </ListItem>
+        );
+      })}
+    </List>
+  </Box>
+);
+
+const BrandMark = ({ size = 40 }) => (
+  <Box
+    sx={{
+      width: size,
+      height: size,
+      borderRadius: 2.5,
+      bgcolor: 'primary.main',
+      color: 'primary.contrastText',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    }}
+  >
+    <svg width={size * 0.6} height={size * 0.6} viewBox="0 0 100 100" fill="none" aria-hidden="true">
+      <path
+        d="M55 15C35 15 20 30 20 50C20 70 35 85 55 85C70 85 80 75 85 65H65C60 65 55 60 55 55H95V50C95 28 78 15 55 15ZM55 30C45 30 40 38 40 50C40 62 45 70 55 70C62 70 67 65 70 60H55V45H80C78 35 68 30 55 30Z"
+        fill="currentColor"
+      />
+    </svg>
+  </Box>
+);
+
 const Layout = ({ children }) => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const { admin } = useSelector((state) => state.auth);
 
-  const isAdmin = admin?.role === 'admin';
+  // xs/sm: temporary drawer · md: icon rail · lg+: full sidebar (collapsible)
+  const isLaptopUp = useMediaQuery(theme.breakpoints.up('lg'));
+  const isTabletLandscapeUp = useMediaQuery(theme.breakpoints.up('md'));
+  const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+
+  const permanent = isTabletLandscapeUp;
+  const rail = permanent && (!isLaptopUp || collapsed);
+  const sidebarWidth = permanent ? (rail ? RAIL_WIDTH : DRAWER_WIDTH) : 0;
+
+  const isAdmin = admin?.role === 'admin';
   const settingsItems = useMemo(() => getSettingsItems(isAdmin), [isAdmin]);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+  // Close the temporary drawer whenever the route changes or the screen grows
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname, isTabletLandscapeUp]);
+
+  const handleMenuButton = () => {
+    if (isLaptopUp) {
+      setCollapsed((prev) => {
+        const next = !prev;
+        try {
+          window.localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0');
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    } else {
+      setMobileOpen((prev) => !prev);
+    }
   };
 
   const handleLogout = () => {
@@ -91,385 +240,183 @@ const Layout = ({ children }) => {
     return 'primary';
   };
 
-  const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Logo Section */}
+  const isActive = useCallback(
+    (path) => (path === '/' ? location.pathname === '/' : location.pathname === path || location.pathname.startsWith(`${path}/`)),
+    [location.pathname]
+  );
+
+  const currentPageTitle = useMemo(() => {
+    const sub = subRouteTitles.find(({ pattern }) => matchPath(pattern, location.pathname));
+    if (sub) return sub.title;
+    const all = [...menuItems, ...whatsappItems, ...settingsItems];
+    const exact = all.find((item) => item.path === location.pathname);
+    if (exact) return exact.text;
+    return all.find((item) => item.path !== '/' && location.pathname.startsWith(item.path))?.text || 'Dashboard';
+  }, [settingsItems, location.pathname]);
+
+  const userInitial = admin?.name?.charAt(0)?.toUpperCase() || 'A';
+  const userRole = admin?.role === 'admin' ? 'Administrator' : 'Agent';
+
+  const renderDrawer = (isRail) => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
+      {/* Brand */}
       <Box
         sx={{
-          p: 3,
+          height: { xs: 56, sm: 64 },
+          px: isRail ? 0 : 2.5,
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
+          justifyContent: isRail ? 'center' : 'flex-start',
+          gap: 1.5,
+          flexShrink: 0,
         }}
       >
-        <Box
-          sx={{
-            width: 45,
-            height: 45,
-            borderRadius: 2,
-            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
-          }}
-        >
-          <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M55 15C35 15 20 30 20 50C20 70 35 85 55 85C70 85 80 75 85 65H65C60 65 55 60 55 55H95V50C95 28 78 15 55 15ZM55 30C45 30 40 38 40 50C40 62 45 70 55 70C62 70 67 65 70 60H55V45H80C78 35 68 30 55 30Z" fill="white"/>
-          </svg>
-        </Box>
-        <Box>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            RealEstate
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-            CRM Platform
-          </Typography>
-        </Box>
-      </Box>
-
-      <Divider sx={{ borderColor: 'rgba(148, 163, 184, 0.1)', mx: 2 }} />
-
-      {/* Main Menu */}
-      <Box sx={{ px: 1, py: 2, flex: 1 }}>
-        <Typography
-          variant="overline"
-          sx={{
-            px: 2,
-            py: 1,
-            color: 'text.secondary',
-            fontWeight: 600,
-            fontSize: '0.65rem',
-            letterSpacing: '0.1em',
-          }}
-        >
-          Main Menu
-        </Typography>
-        <List sx={{ py: 1 }}>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                aria-current={location.pathname === item.path ? 'page' : undefined}
-                onClick={() => navigate(item.path)}
-                sx={{
-                  py: 1.2,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <ListItemIcon>
-                  {item.badge ? (
-                    <Badge
-                      variant="dot"
-                      color={getBadgeColor(item.badge)}
-                      sx={{
-                        '& .MuiBadge-badge': {
-                          right: 2,
-                          top: 2,
-                        },
-                      }}
-                    >
-                      {item.icon}
-                    </Badge>
-                  ) : (
-                    item.icon
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: location.pathname === item.path ? 600 : 500,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-
-        <Typography
-          variant="overline"
-          sx={{
-            px: 2,
-            py: 1,
-            mt: 2,
-            color: 'text.secondary',
-            fontWeight: 600,
-            fontSize: '0.65rem',
-            letterSpacing: '0.1em',
-            display: 'block',
-          }}
-        >
-          WhatsApp
-        </Typography>
-        <List sx={{ py: 1 }}>
-          {whatsappItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
-                sx={{
-                  py: 1.2,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <ListItemIcon>
-                  <WhatsAppIcon sx={{ color: '#25D366' }} />
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: location.pathname === item.path ? 600 : 500,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-
-        <Typography
-          variant="overline"
-          sx={{
-            px: 2,
-            py: 1,
-            mt: 2,
-            color: 'text.secondary',
-            fontWeight: 600,
-            fontSize: '0.65rem',
-            letterSpacing: '0.1em',
-            display: 'block',
-          }}
-        >
-          Settings
-        </Typography>
-        <List sx={{ py: 1 }}>
-          {settingsItems.map((item) => (
-            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => navigate(item.path)}
-                sx={{
-                  py: 1.2,
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  primaryTypographyProps={{
-                    fontSize: '0.875rem',
-                    fontWeight: location.pathname === item.path ? 600 : 500,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-
-      {/* User Profile Section */}
-      <Box
-        sx={{
-          p: 2,
-          mx: 2,
-          mb: 2,
-          borderRadius: 3,
-          backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.08),
-          border: '1px solid',
-          borderColor: (theme) => alpha(theme.palette.primary.main, 0.15),
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            sx={{
-              width: 40,
-              height: 40,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-            }}
-          >
-            {admin?.name?.charAt(0)?.toUpperCase() || 'A'}
-          </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, color: 'text.primary' }}
-              noWrap
-            >
-              {admin?.name || 'Admin User'}
+        <BrandMark size={isRail ? 38 : 40} />
+        {!isRail && (
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontSize: '1.05rem', lineHeight: 1.2 }} noWrap>
+              RealEstate
             </Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.secondary' }}
-              noWrap
-            >
-              {admin?.role === 'admin' ? 'Administrator' : 'Agent'}
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }} noWrap>
+              CRM Platform
             </Typography>
           </Box>
-          <Tooltip title="Logout">
-            <IconButton
-              size="small"
-              aria-label="Logout"
-              onClick={handleLogout}
-              sx={{
-                color: 'text.secondary',
-                '&:hover': {
-                  color: 'error.main',
-                  backgroundColor: (theme) => alpha(theme.palette.error.main, 0.1),
-                },
-              }}
-            >
-              <LogoutIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
+        )}
+      </Box>
+
+      <Divider sx={{ mx: 2 }} />
+
+      {/* Navigation */}
+      <Box sx={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', py: 1 }}>
+        <NavSection title="Main menu" items={menuItems} rail={isRail} isActive={isActive} onNavigate={navigate} getBadgeColor={getBadgeColor} />
+        <NavSection title="WhatsApp" items={whatsappItems} rail={isRail} isActive={isActive} onNavigate={navigate} getBadgeColor={getBadgeColor} />
+        <NavSection title="Settings" items={settingsItems} rail={isRail} isActive={isActive} onNavigate={navigate} getBadgeColor={getBadgeColor} />
+      </Box>
+
+      {/* Profile */}
+      <Box sx={{ p: isRail ? 1 : 2, flexShrink: 0 }}>
+        {isRail ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <Tooltip title={`${admin?.name || 'Admin User'} · ${userRole}`} placement="right">
+              <Avatar sx={{ width: 36, height: 36, fontSize: '0.875rem' }}>{userInitial}</Avatar>
+            </Tooltip>
+            <Tooltip title="Log out" placement="right">
+              <IconButton size="small" aria-label="Log out" onClick={handleLogout} sx={{ color: 'text.secondary' }}>
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 3,
+              bgcolor: 'surface.raised',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+            }}
+          >
+            <Avatar sx={{ width: 38, height: 38, fontSize: '0.9rem' }}>{userInitial}</Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                {admin?.name || 'Admin User'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }} noWrap component="div">
+                {userRole}
+              </Typography>
+            </Box>
+            <Tooltip title="Log out">
+              <IconButton
+                size="small"
+                aria-label="Log out"
+                onClick={handleLogout}
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': { color: 'error.main', bgcolor: (t) => alpha(t.palette.error.main, 0.1) },
+                }}
+              >
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
     </Box>
   );
 
-  const currentPageTitle = useMemo(
-    () => [...menuItems, ...settingsItems].find((item) => item.path === location.pathname)?.text || 'Dashboard',
-    [settingsItems, location.pathname]
-  );
+  const widthTransition = theme.transitions.create(['width', 'margin'], {
+    duration: theme.transitions.duration.shorter,
+  });
+
+  const menuLabel = isLaptopUp ? (collapsed ? 'Expand sidebar' : 'Collapse sidebar') : 'Open navigation menu';
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)',
-      }}
-    >
-      <CssBaseline />
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar
         position="fixed"
-        elevation={0}
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { xs: '100%', md: `calc(100% - ${sidebarWidth}px)` },
+          ml: { md: `${sidebarWidth}px` },
+          transition: widthTransition,
         }}
       >
-        <Toolbar sx={{ gap: 2 }}>
-          <IconButton
-            color="inherit"
-            aria-label="Open navigation menu"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-
-          <Box sx={{ flex: 1 }}>
-            <Typography
-              variant="h5"
-              noWrap
-              component="div"
-              sx={{ fontWeight: 600, letterSpacing: '-0.02em' }}
-            >
-              {currentPageTitle}
-            </Typography>
-          </Box>
-
-          {/* Search Button */}
-          <Tooltip title="Search">
-            <IconButton
-              aria-label="Search"
-              sx={{
-                backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                '&:hover': {
-                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.2),
-                },
-              }}
-            >
-              <SearchIcon />
+        <Toolbar sx={{ gap: { xs: 1, sm: 1.5 }, px: { xs: 1.5, sm: 2.5, lg: 3 } }}>
+          <Tooltip title={menuLabel}>
+            <IconButton edge="start" aria-label={menuLabel} onClick={handleMenuButton} sx={{ color: 'text.secondary' }}>
+              {isLaptopUp && !collapsed ? <MenuOpenIcon /> : <MenuIcon />}
             </IconButton>
           </Tooltip>
 
-          {/* Notifications */}
-          <Tooltip title="Notifications">
-            <IconButton
-              aria-label="Notifications"
-              sx={{
-                backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                '&:hover': {
-                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.2),
-                },
-              }}
-            >
-              <Badge badgeContent={3} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+          <Typography variant="h6" component="h1" noWrap sx={{ flex: 1, minWidth: 0, fontSize: { xs: '1.05rem', sm: '1.2rem' } }}>
+            {currentPageTitle}
+          </Typography>
 
-          {/* Settings */}
-          <Tooltip title="Settings">
-            <IconButton
-              aria-label="Settings"
-              sx={{
-                backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1),
-                '&:hover': {
-                  backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.2),
-                },
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
-          </Tooltip>
+          {!isPhone && (
+            <Tooltip title="Search">
+              <IconButton aria-label="Search" sx={{ color: 'text.secondary' }}>
+                <SearchIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
+          <NotificationBell />
+
+          <ThemeModeToggle compact={isPhone} />
         </Toolbar>
       </AppBar>
 
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
+      {/* Sidebar */}
+      <Box component="aside" sx={{ width: { md: sidebarWidth }, flexShrink: { md: 0 }, transition: widthTransition }}>
+        {/* Phones, tablets portrait, and the "expand" overlay on tablets landscape */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
-              width: drawerWidth,
-              background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 27, 75, 0.98) 100%)',
-              backdropFilter: 'blur(20px)',
-            },
+            display: { xs: 'block', lg: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: { xs: 'min(86vw, 300px)', sm: DRAWER_WIDTH + 16 } },
           }}
         >
-          {drawer}
+          {renderDrawer(false)}
         </Drawer>
+
+        {/* Tablet landscape (rail) and laptop/desktop (full or collapsed) */}
         <Drawer
           variant="permanent"
+          open
           sx={{
-            display: { xs: 'none', sm: 'block' },
+            display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': {
               boxSizing: 'border-box',
-              width: drawerWidth,
-              background: 'linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 27, 75, 0.98) 100%)',
-              backdropFilter: 'blur(20px)',
-              borderRight: '1px solid rgba(148, 163, 184, 0.08)',
+              width: sidebarWidth || RAIL_WIDTH,
+              transition: widthTransition,
+              overflowX: 'hidden',
             },
           }}
-          open
         >
-          {drawer}
+          {renderDrawer(rail)}
         </Drawer>
       </Box>
 
@@ -477,16 +424,26 @@ const Layout = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 1.5, sm: 3 },
-          width: { xs: '100%', sm: `calc(100% - ${drawerWidth}px)` },
-          maxWidth: { xs: '100vw', sm: `calc(100% - ${drawerWidth}px)` },
           minWidth: 0,
-          overflow: 'hidden',
+          width: { xs: '100%', md: `calc(100% - ${sidebarWidth}px)` },
           minHeight: '100vh',
+          transition: widthTransition,
         }}
       >
         <Toolbar />
-        {children}
+        <Box
+          className="fade-in"
+          key={location.pathname}
+          sx={{
+            maxWidth: CONTENT_MAX_WIDTH,
+            mx: 'auto',
+            px: { xs: 2, sm: 3, lg: 4 },
+            py: { xs: 2, sm: 3 },
+            pb: { xs: 'calc(16px + env(safe-area-inset-bottom, 0px))', sm: 4 },
+          }}
+        >
+          {children}
+        </Box>
       </Box>
     </Box>
   );

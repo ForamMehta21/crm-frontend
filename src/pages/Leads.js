@@ -169,14 +169,14 @@ const Leads = () => {
         <Box 
           sx={{ 
             display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' },
+            flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' },
+            alignItems: { xs: 'flex-start', md: 'center' },
             mb: 3,
             gap: 2
           }}
         >
-          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', md: '1.875rem' } }}>
             Leads Management
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -373,7 +373,7 @@ const Leads = () => {
                               href={buildWaUrl(item.phoneNumber)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ display: 'inline-flex', alignItems: 'center', color: '#25D366', textDecoration: 'none', padding: '3px', borderRadius: '50%', lineHeight: 0 }}
+                              style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--crm-whatsapp, #25D366)', textDecoration: 'none', padding: '3px', borderRadius: '50%', lineHeight: 0 }}
                             >
                               <WhatsAppIcon style={{ fontSize: 18 }} />
                             </a>

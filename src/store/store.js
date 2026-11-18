@@ -12,6 +12,7 @@ import builderReducer from './slices/builderSlice';
 import investorReducer from './slices/investorSlice';
 import userReducer from './slices/userSlice';
 import whatsappReducer from './slices/whatsappSlice';
+import notificationReducer from './slices/notificationSlice';
 import { setStore } from './storeAccessor';
 
 const persistConfig = {
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
   investors: investorReducer,
   users: userReducer,
   whatsapp: whatsappReducer,
+  notifications: notificationReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

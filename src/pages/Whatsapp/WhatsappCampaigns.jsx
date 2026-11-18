@@ -25,11 +25,11 @@ import Layout from '../../components/Layout';
 import { fetchCampaigns, clearError } from '../../store/slices/whatsappSlice';
 
 const statusConfig = {
-  DRAFT: { color: 'default', bg: '#64748b' },
-  SCHEDULED: { color: 'info', bg: '#3b82f6' },
-  RUNNING: { color: 'warning', bg: '#f59e0b' },
-  COMPLETED: { color: 'success', bg: '#10b981' },
-  FAILED: { color: 'error', bg: '#ef4444' }
+  DRAFT: { color: 'default' },
+  SCHEDULED: { color: 'info' },
+  RUNNING: { color: 'warning' },
+  COMPLETED: { color: 'success' },
+  FAILED: { color: 'error' }
 };
 
 const WhatsappCampaigns = () => {
@@ -50,7 +50,7 @@ const WhatsappCampaigns = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           WhatsApp Campaigns
         </Typography>
@@ -59,7 +59,7 @@ const WhatsappCampaigns = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => navigate('/whatsapp/campaigns/new')}
-            sx={{ borderRadius: 2 }}
+            
           >
             New Campaign
           </Button>
@@ -68,7 +68,7 @@ const WhatsappCampaigns = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <TableContainer component={Paper} sx={{ borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+      <TableContainer component={Paper} variant="outlined" className="responsive-table">
         <Table>
           <TableHead>
             <TableRow>
@@ -97,31 +97,31 @@ const WhatsappCampaigns = () => {
             ) : (
               campaigns.map((campaign) => (
                 <TableRow key={campaign._id} hover>
-                  <TableCell>
+                  <TableCell data-label="Campaign">
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{campaign.name}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell data-label="Template">
                     <Typography variant="body2">{campaign.templateId?.name || '—'}</Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell data-label="Status">
                     <Chip
                       label={campaign.status}
                       size="small"
                       color={statusConfig[campaign.status]?.color || 'default'}
                     />
                   </TableCell>
-                  <TableCell>{campaign.stats?.total || 0}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="Recipients">{campaign.stats?.total || 0}</TableCell>
+                  <TableCell data-label="Sent / Delivered / Read">
                     <Typography variant="body2">
                       {campaign.stats?.sent || 0} / {campaign.stats?.delivered || 0} / {campaign.stats?.read || 0}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell data-label="Scheduled">
                     {campaign.scheduledAt
                       ? new Date(campaign.scheduledAt).toLocaleString()
                       : '—'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell data-label="Actions">
                     <Tooltip title="View Details">
                       <IconButton
                         size="small"

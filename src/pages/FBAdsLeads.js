@@ -225,7 +225,7 @@ const FBAdsLeads = () => {
                               href={buildWaUrl(item.phoneNumber)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              style={{ display: "inline-flex", alignItems: "center", color: "#25D366", textDecoration: "none", padding: "3px", borderRadius: "50%", lineHeight: 0 }}
+                              style={{ display: "inline-flex", alignItems: "center", color: "var(--crm-whatsapp, #25D366)", textDecoration: "none", padding: "3px", borderRadius: "50%", lineHeight: 0 }}
                             >
                               <WhatsAppIcon style={{ fontSize: 18 }} />
                             </a>

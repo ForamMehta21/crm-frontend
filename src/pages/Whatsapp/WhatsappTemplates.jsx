@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import SyncIcon from '@mui/icons-material/Sync';
 import Layout from '../../components/Layout';
+import { softBg } from '../../theme/createAppTheme';
 import { fetchTemplates, syncTemplates, clearError } from '../../store/slices/whatsappSlice';
 
 const statusColors = {
@@ -25,10 +26,10 @@ const statusColors = {
   REJECTED: 'error'
 };
 
-const categoryColors = {
-  MARKETING: '#8b5cf6',
-  UTILITY: '#3b82f6',
-  AUTHENTICATION: '#f59e0b'
+const categoryTones = {
+  MARKETING: 'violet',
+  UTILITY: 'info',
+  AUTHENTICATION: 'brass'
 };
 
 const WhatsappTemplates = () => {
@@ -48,7 +49,7 @@ const WhatsappTemplates = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
           WhatsApp Templates
         </Typography>
@@ -67,7 +68,7 @@ const WhatsappTemplates = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <TableContainer component={Paper} sx={{ borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+      <TableContainer component={Paper} variant="outlined" className="responsive-table">
         <Table>
           <TableHead>
             <TableRow>
@@ -97,21 +98,21 @@ const WhatsappTemplates = () => {
                 const bodyComp = tpl.components?.find(c => c.type === 'BODY');
                 return (
                   <TableRow key={tpl._id} hover>
-                    <TableCell>
+                    <TableCell data-label="Name">
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>{tpl.name}</Typography>
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Category">
                       <Chip
                         label={tpl.category}
                         size="small"
-                        sx={{ backgroundColor: categoryColors[tpl.category] || '#6366f1', color: '#fff', fontWeight: 500 }}
+                        sx={{ bgcolor: (t) => softBg(t, categoryTones[tpl.category] || 'primary'), color: `${categoryTones[tpl.category] || 'primary'}.main`, fontWeight: 600 }}
                       />
                     </TableCell>
-                    <TableCell>{tpl.language}</TableCell>
-                    <TableCell>
+                    <TableCell data-label="Language">{tpl.language}</TableCell>
+                    <TableCell data-label="Status">
                       <Chip label={tpl.status} size="small" color={statusColors[tpl.status] || 'default'} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell data-label="Variables">
                       {tpl.variables?.length > 0 ? (
                         tpl.variables.map((v, i) => (
                           <Chip key={i} label={`{{${v}}}`} size="small" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
@@ -120,8 +121,8 @@ const WhatsappTemplates = () => {
                         <Typography variant="caption" color="text.secondary">None</Typography>
                       )}
                     </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <TableCell data-label="Body Preview">
+                      <Typography variant="body2" sx={{ maxWidth: { xs: '100%', md: 300 }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {bodyComp?.text || '—'}
                       </Typography>
                     </TableCell>

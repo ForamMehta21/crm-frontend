@@ -48,7 +48,7 @@ const formatDateOnly = (dateStr) => {
 };
 
 const InfoRow = ({ label, value }) => (
-  <Box sx={{ display: 'flex', mb: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
+  <Box sx={{ display: 'flex', mb: 1, flexDirection: { xs: 'column', md: 'row' } }}>
     <Typography variant="subtitle2" color="text.secondary" sx={{ width: { sm: '40%' }, fontWeight: 600 }}>
       {label}:
     </Typography>
@@ -96,7 +96,7 @@ const LeadView = () => {
   return (
     <Layout>
       <Container maxWidth="lg">
-        <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ mb: 3, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
           <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/leads')}>
             Back to Leads
           </Button>
@@ -144,7 +144,7 @@ const LeadView = () => {
               <Typography variant="h6" color="primary" gutterBottom>Property Details</Typography>
               <Divider sx={{ mb: 2 }} />
               <InfoRow label="Property Type" value={propertyType} />
-              <Box sx={{ display: 'flex', mb: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <Box sx={{ display: 'flex', mb: 1, flexDirection: { xs: 'column', md: 'row' } }}>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ width: { sm: '40%' }, fontWeight: 600 }}>
                   Configuration:
                 </Typography>

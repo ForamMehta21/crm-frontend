@@ -100,14 +100,14 @@ const PropertyConditions = () => {
         <Box 
           sx={{ 
             display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' },
+            flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between', 
-            alignItems: { xs: 'flex-start', sm: 'center' },
+            alignItems: { xs: 'flex-start', md: 'center' },
             mb: 3,
             gap: 2
           }}
         >
-          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+          <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', md: '1.875rem' } }}>
             Property Conditions
           </Typography>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpen} size="small">

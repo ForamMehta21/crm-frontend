@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { Box, CircularProgress } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import PrivateRoute from './components/PrivateRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import GlobalErrorSnackbar from './components/GlobalErrorSnackbar';
-import modernTheme from './theme/modernTheme';
+import { ColorModeProvider } from './theme/ColorModeContext';
 import { checkAuth, setInitialized } from './store/slices/authSlice';
 
 const Login = lazy(() => import('./pages/Login'));
@@ -29,9 +27,10 @@ const WhatsappTemplates = lazy(() => import('./pages/Whatsapp/WhatsappTemplates'
 const WhatsappCampaigns = lazy(() => import('./pages/Whatsapp/WhatsappCampaigns'));
 const WhatsappCampaignNew = lazy(() => import('./pages/Whatsapp/WhatsappCampaignNew'));
 const WhatsappCampaignDetail = lazy(() => import('./pages/Whatsapp/WhatsappCampaignDetail'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', bgcolor: 'background.default' }}>
     <CircularProgress />
   </Box>
 );
@@ -58,8 +57,7 @@ function App() {
   }, [dispatch, admin, isInitialized]);
 
   return (
-    <ThemeProvider theme={modernTheme}>
-      <CssBaseline />
+    <ColorModeProvider>
       <GlobalErrorSnackbar />
       <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
@@ -87,11 +85,12 @@ function App() {
             <Route path="/whatsapp/campaigns" element={<PrivateRoute><WhatsappCampaigns /></PrivateRoute>} />
             <Route path="/whatsapp/campaigns/new" element={<PrivateRoute><WhatsappCampaignNew /></PrivateRoute>} />
             <Route path="/whatsapp/campaigns/:id" element={<PrivateRoute><WhatsappCampaignDetail /></PrivateRoute>} />
+            <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>
-    </ThemeProvider>
+    </ColorModeProvider>
   );
 }
 

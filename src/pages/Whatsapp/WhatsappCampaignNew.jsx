@@ -31,6 +31,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import Layout from '../../components/Layout';
+import { softBg } from '../../theme/createAppTheme';
 import {
   fetchTemplates,
   createCampaign,
@@ -216,9 +217,10 @@ const WhatsappCampaignNew = () => {
                   <Grid item xs={12} sm={6} md={4} key={tpl._id}>
                     <Card
                       sx={{
-                        border: isSelected ? '2px solid #6366f1' : '1px solid rgba(148,163,184,0.1)',
-                        backgroundColor: isSelected ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)',
-                        borderRadius: 3
+                        border: isSelected ? 2 : 1,
+                        borderColor: isSelected ? 'primary.main' : 'divider',
+                        bgcolor: (t) => (isSelected ? softBg(t, 'primary') : t.palette.background.paper),
+                        height: '100%'
                       }}
                     >
                       <CardActionArea onClick={() => handleSelectTemplate(tpl)} sx={{ p: 2 }}>
@@ -354,7 +356,7 @@ const WhatsappCampaignNew = () => {
             </Box>
 
             {audiencePreview && (
-              <Paper sx={{ mt: 2, p: 2, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+              <Paper variant="outlined" sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: 'surface.raised' }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: audiencePreview.count === 0 ? 'error.main' : 'success.main' }}>
                   {audiencePreview.count} eligible leads
                 </Typography>
@@ -414,7 +416,7 @@ const WhatsappCampaignNew = () => {
               <Alert severity="info">This template has no variables to map.</Alert>
             )}
 
-            <Paper sx={{ mt: 3, p: 2, borderRadius: 2, backgroundColor: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.2)' }}>
+            <Paper variant="outlined" sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: (t) => softBg(t, 'primary'), borderColor: 'primary.main' }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Live Preview</Typography>
               <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                 {getRenderedPreview()}
@@ -451,7 +453,7 @@ const WhatsappCampaignNew = () => {
               </LocalizationProvider>
             )}
 
-            <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
               <Typography variant="h6" sx={{ mb: 2, fontWeight: 700 }}>Campaign Summary</Typography>
               <Grid container spacing={2}>
                 <Grid item xs={6}>
@@ -481,14 +483,7 @@ const WhatsappCampaignNew = () => {
                 size="large"
                 onClick={handleLaunch}
                 disabled={loading || !canProceed()}
-                sx={{
-                  px: 6,
-                  py: 1.5,
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                  fontWeight: 700,
-                  fontSize: '1rem'
-                }}
+                sx={{ px: { xs: 3, sm: 6 }, width: { xs: '100%', sm: 'auto' }, fontWeight: 700 }}
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Launch Campaign'}
               </Button>
@@ -511,7 +506,7 @@ const WhatsappCampaignNew = () => {
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-      <Paper sx={{ p: 3, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(148,163,184,0.1)' }}>
+      <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
         <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
           {steps.map((label) => (
             <Step key={label}>
@@ -523,7 +518,7 @@ const WhatsappCampaignNew = () => {
         {renderStepContent()}
 
         {activeStep < 3 && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'space-between', mt: 4 }}>
             <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
               Back
             </Button>
